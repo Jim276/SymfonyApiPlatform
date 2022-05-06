@@ -2,14 +2,27 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use App\Repository\CustomerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 #[ApiResource(
+    normalizationContext:[
+        'groups' => ['read_customers']
+    ],
+    denormalizationContext:[
+        'groups' => ['write_customer']
+    ],
+    attributes: [
+        'pagination_enabled' => true,
+        'pagination_items_per_page' => 5
+    ],
     collectionOperations:[
         'get_customers' => [
             'method' => 'GET',
@@ -33,8 +46,12 @@ use ApiPlatform\Core\Annotation\ApiResource;
             'method' => 'DELETE',
             'path' => '/client/{id}/delete'
         ]
-    ]
+        ],
+        order:[
+            'lastname' => 'ASC'
+        ]
 )]
+#[ApiFilter(SearchFilter::class, properties: ['company' => 'exact', 'email' => 'partial'])]
 class Customer
 {
     #[ORM\Id]
@@ -43,12 +60,15 @@ class Customer
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read_customers', 'write_customer'])]
     private $firstname;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read_customers', 'write_customer'])]
     private $lastname;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['write_customer'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]

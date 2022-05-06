@@ -5,9 +5,20 @@ namespace App\Entity;
 use App\Repository\InvoiceRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: InvoiceRepository::class)]
 #[ApiResource(
+    normalizationContext:[
+        'groups' => ['read_invoices']
+    ],
+    denormalizationContext:[
+        'groups' => ['write_invoices']
+    ],
+    attributes: [
+        "pagination_enabled" => true,
+        "pagination_items_per_page" => 5
+    ],
     collectionOperations:[
         'get_invoices' => [
             'method' => 'GET',
@@ -31,7 +42,10 @@ use ApiPlatform\Core\Annotation\ApiResource;
             'method' => 'DELETE',
             'path' => '/facture/{id}/delete'
         ]
-    ]
+        ],
+        order:[
+            "id" => "DESC"
+        ]
 )]
 class Invoice
 {
@@ -41,18 +55,22 @@ class Invoice
     private $id;
 
     #[ORM\Column(type: 'float')]
+    #[Groups(['read_invoices'])]
     private $amount;
 
     #[ORM\Column(type: 'datetime')]
+    #[Groups(['read_invoices'])]
     private $sentAt;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read_invoices'])]
     private $status;
 
     #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy: 'invoices')]
     private $customer;
 
     #[ORM\Column(type: 'integer')]
+    #[Groups(['read_invoices'])]
     private $chrono;
 
     public function getId(): ?int

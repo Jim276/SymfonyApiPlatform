@@ -62,6 +62,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Customer::class)]
     private $customers;
 
+    #[ORM\ManyToOne(targetEntity: Profil::class, inversedBy: 'users')]
+    private $profil;
+
     public function __construct()
     {
         $this->customers = new ArrayCollection();
@@ -94,14 +97,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
+    
     public function getRoles(): array
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        $roles[] = 'ROLE_'.$this->profil->getLibelle();
 
         return array_unique($roles);
     }
@@ -187,6 +188,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $customer->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getProfil(): ?Profil
+    {
+        return $this->profil;
+    }
+
+    public function setProfil(?Profil $profil): self
+    {
+        $this->profil = $profil;
 
         return $this;
     }
